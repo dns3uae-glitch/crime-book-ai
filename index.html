@@ -75,19 +75,21 @@
       <button id="deleteBtn" class="btn-ghost">🗑 حذف</button>
     </div>
 
-    <h2>🧭 تعديل يدوي للموقع</h2>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn-ghost" onclick="rotateSelected('x')">🔄 ميلان X</button>
-      <button class="btn-ghost" onclick="rotateSelected('y')">🔄 ميلان Y</button>
-      <button class="btn-ghost" onclick="rotateSelected('z')">🔄 ميلان Z</button>
-      <button class="btn-ghost" onclick="raiseSelected()">⬆ رفع</button>
-      <button class="btn-ghost" onclick="lowerSelected()">⬇ خفض</button>
-<button class="btn-ghost" onclick="moveSelected('left')">⬅ يسار</button>
-<button class="btn-ghost" onclick="moveSelected('right')">➡ يمين</button>
-<button class="btn-ghost" onclick="moveSelected('forward')">⬆ أمام</button>
-<button class="btn-ghost" onclick="moveSelected('backward')">⬇ خلف</button>
+<h2>🧭 تعديل يدوي للموقع</h2>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+  <button class="btn-ghost" onclick="rotateSelected('x')">🔄 ميلان X</button>
+  <button class="btn-ghost" onclick="rotateSelected('y')">🔄 ميلان Y</button>
+  <button class="btn-ghost" onclick="rotateSelected('z')">🔄 ميلان Z</button>
+  <button class="btn-ghost" onclick="raiseSelected()">⬆ رفع</button>
+  <button class="btn-ghost" onclick="lowerSelected()">⬇ خفض</button>
+  <button class="btn-ghost" onclick="moveSelected('left')">⬅ يسار</button>
+  <button class="btn-ghost" onclick="moveSelected('right')">➡ يمين</button>
+  <button class="btn-ghost" onclick="moveSelected('forward')">⬆ أمام</button>
+  <button class="btn-ghost" onclick="moveSelected('backward')">⬇ خلف</button>
+  <button class="btn-ghost" onclick="scaleUp()">⤢ تكبير</button>
+  <button class="btn-ghost" onclick="scaleDown()">⤡ تصغير</button>
+</div>
 
-    </div>
 
     <h2>⏱ الاختبار</h2>
     <label>مدة الاختبار (ثواني)</label>
@@ -489,6 +491,23 @@ function selectPlaced(id){
     selected.el.setAttribute('material','color','#2ecc71');
     selected.el.setAttribute('gizmo', 'mode: translate; rotation: true; scale: true; size: 1.5');
   }
+}
+function scaleUp(){
+  if(!selected) return alert('اختر عنصرًا أولاً');
+  const scale = selected.el.getAttribute('scale');
+  scale.x += 0.2;
+  scale.y += 0.2;
+  scale.z += 0.2;
+  selected.el.setAttribute('scale', `${scale.x} ${scale.y} ${scale.z}`);
+}
+
+function scaleDown(){
+  if(!selected) return alert('اختر عنصرًا أولاً');
+  const scale = selected.el.getAttribute('scale');
+  scale.x = Math.max(0.2, scale.x - 0.2);
+  scale.y = Math.max(0.2, scale.y - 0.2);
+  scale.z = Math.max(0.2, scale.z - 0.2);
+  selected.el.setAttribute('scale', `${scale.x} ${scale.y} ${scale.z}`);
 }
 
 </script>
