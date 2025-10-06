@@ -9,7 +9,7 @@ app.use(express.json());
 app.post("/api/openai", async (req, res) => {
   const { message } = req.body;
   try {
-const response = await fetch('https://crime-ai-proxy.onrender.com/api/openai', {
+const response = await fetch('https://gpt-proxy-server-xs5u.onrender.com/ask', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ message: text })
