@@ -96,13 +96,13 @@
 
       <!-- مشهد A-Frame -->
       <a-scene id="scene" background="color: #111" embedded vr-mode-ui="enabled: false">
-        <!-- أرضية وسجاد -->
-        <a-plane rotation="-90 0 0" width="10" height="10" color="#2b221f" repeat="4 4"></a-plane>
+       <!-- أرضية خشبية -->
+<a-plane rotation="-90 0 0" width="10" height="10" color="#4b3f36" material="src: https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/textures/wood.jpg; repeat: 4 4"></a-plane>
 
-        <!-- جدران بسيطة -->
-        <a-box position="0 1.6 -5" width="10" height="3" depth="0.1" color="#3c2f2f"></a-box>
-        <a-box position="-5 1.6 0" width="0.1" height="3" depth="10" color="#3f3333"></a-box>
-        <a-box position="5 1.6 0" width="0.1" height="3" depth="10" color="#3f3333"></a-box>
+<!-- جدران بلون رمادي واقعي -->
+<a-box position="0 1.6 -5" width="10" height="3" depth="0.1" color="#888"></a-box>
+<a-box position="-5 1.6 0" width="0.1" height="3" depth="10" color="#777"></a-box>
+<a-box position="5 1.6 0" width="0.1" height="3" depth="10" color="#777"></a-box>
 
         <!-- إضاءة -->
         <a-entity light="type: ambient; intensity: 0.5"></a-entity>
@@ -340,13 +340,21 @@ function endRound(){
 /* ====== مساعدة: تفريغ مثال بعناصر اختبار جاهزة (روابط ثابتة للاختبار) ====== */
 (function seedExamples(){
   const examples = [
-    {name:'زجاجة تجربة (اختبار)', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/WaterBottle/glTF/WaterBottle.gltf'},
-    {name:'افوكادو (اختبار حجم/مواد)', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf'},
-    {name:'Duck (موديل اختبار)', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf'}
+    {name:'سكين', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Knife/glTF/Knife.gltf'},
+    {name:'سرير', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Bed/glTF/Bed.gltf'},
+    {name:'جثة', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/DeadBody/glTF/DeadBody.gltf'},
+    {name:'مسدس', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Pistol/glTF/Pistol.gltf'},
+    {name:'بقعة دم', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/BloodStain/glTF/BloodStain.gltf'},
+    {name:'هاتف محمول', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/CellPhone/glTF/CellPhone.gltf'},
+    {name:'كأس مكسور', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/BrokenGlass/glTF/BrokenGlass.gltf'},
+    {name:'مفاتيح', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Keys/glTF/Keys.gltf'},
+    {name:'مظروف', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Envelope/glTF/Envelope.gltf'},
+    {name:'حقيبة', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Bag/glTF/Bag.gltf'}
   ];
-  examples.forEach(x=> library.push({id:'ex'+Math.random().toString(36).slice(2), name:x.name, url:x.url}));
+  examples.forEach(x => library.push({id:'ex'+Math.random().toString(36).slice(2), name:x.name, url:x.url}));
   renderLibrary();
 })();
+
 
 /* ====== Helpers ====== */
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
