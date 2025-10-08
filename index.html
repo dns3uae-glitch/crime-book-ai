@@ -1,515 +1,615 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <title>مسرح جريمة ثلاثي الأبعاد</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/aframe-super-hands-component@4.0.5/dist/aframe-super-hands.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/aframe-gizmo@1.0.0/dist/aframe-gizmo.min.js"></script>
-  <script src="https://unpkg.com/aframe-draggable-component/dist/aframe-draggable-component.min.js"></script>
-  <style>
-    :root { --bg:#0f1112; --panel:#131516; --accent:#c59e2b; --muted:#9aa0a6; color-scheme: dark; }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:'Tajawal',sans-serif;background:var(--bg);color:#fff}
-    #app{display:flex;height:100vh;gap:10px}
-    #sidebar{width:360px;background:var(--panel);padding:12px;overflow:auto;border-right:1px solid rgba(255,255,255,0.04)}
-    h2{margin:6px 0 12px 0;font-size:18px;color:var(--accent)}
-    label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
-    input[type="text"], input[type="url"], select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0c0d0e;color:#fff}
-    button{background:var(--accent);border:none;padding:8px 12px;border-radius:8px;color:#081217;cursor:pointer;margin-top:8px;font-weight:700}
-    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:6px;border-radius:8px;cursor:pointer}
-    .item{background:#0b0c0d;padding:8px;border-radius:8px;margin-top:8px;display:flex;gap:8px;align-items:center}
-    .list{margin-top:10px}
-    #sceneWrap{flex:1;position:relative}
-    #hud{position:absolute;left:12px;top:12px;background:rgba(0,0,0,0.6);padding:10px;border-radius:10px;color:gold;z-index:2}
-    #controls{position:absolute;right:12px;top:12px;background:rgba(0,0,0,0.6);padding:10px;border-radius:10px;z-index:2}
-    #message{position:absolute;left:50%;transform:translateX(-50%);bottom:20px;background:rgba(0,0,0,0.6);padding:10px 14px;border-radius:8px;z-index:2}
-    .selected{outline:2px solid #2ecc71}
-    #timer{font-weight:900;color:#fff}
-    .hint{font-size:12px;color:var(--muted);margin-top:6px}
-  </style>
+<meta charset="UTF-8" />
+<title>AI Crime Scene – Elite Investigator Edition (v9-fixed)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<style>
+:root{--gold:#d4af37;--dark:#0a0c0f;--glass:#0f1317cc}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--dark);font-family:"Tajawal",system-ui,Arial;color:#fff}
+a-scene{width:100%;height:100vh;z-index:1}
+
+/* شاشة البداية */
+#overlayStart{
+  position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(700px 420px at 50% 40%, rgba(212,175,55,.15), rgba(0,0,0,.8));
+  z-index:12000;text-align:center;color:var(--gold);font-size:22px
+}
+/* مهم: السماح بالنقر (لا تمنع الضغط على الزر) */
+#overlayStart, #overlayStart *{ pointer-events:auto !important; }
+
+#overlayStart button{
+  margin-top:20px;padding:10px 24px;border:none;border-radius:12px;cursor:pointer;
+  background:linear-gradient(90deg,var(--gold),#b78f2a);color:#000;font-weight:800;font-size:18px;
+  box-shadow:0 0 14px rgba(212,175,55,.5); transition:transform .18s ease, box-shadow .18s ease, filter .2s ease
+}
+/* وميض ذهبي عند المرور */
+#overlayStart button:hover{ box-shadow:0 0 26px rgba(212,175,55,.85); filter:brightness(1.05) }
+#overlayStart button:active{ transform:scale(.96) }
+
+/* HUD */
+#hud{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 12px;font-weight:800;z-index:11000;display:flex;gap:10px;align-items:center}
+#time{color:#d4af37}
+#status{color:#cfe1ff}
+#score{color:#39d98a}
+
+/* طبقة الواجهة */
+#uiLayer{position:fixed;inset:0;z-index:10000;pointer-events:none}
+#btnOpen{position:absolute;top:20px;right:20px;pointer-events:auto;width:56px;height:56px;border:none;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 35% 30%, var(--gold), #b78f2a);color:#000;font-weight:900;font-size:22px;box-shadow:0 0 12px rgba(212,175,55,.6)}
+
+/* القائمة */
+#sidebar{position:absolute;top:0;right:0;width:400px;height:100%;background:var(--glass);backdrop-filter:blur(14px);border-left:1px solid rgba(255,255,255,.12);padding:14px;overflow:auto;transition:right .45s ease;pointer-events:auto;z-index:10001}
+#sidebar.hidden{right:-420px}
+#sidebarHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#btnClose{pointer-events:auto;border:none;background:transparent;color:#fff;font-size:20px;cursor:pointer}
+h2{color:var(--gold);margin:12px 0 8px}
+.btn{background:linear-gradient(90deg,var(--gold),#b78f2a);color:#000;font-weight:800;border:none;border-radius:10px;padding:8px 12px;cursor:pointer;box-shadow:0 0 12px rgba(212,175,55,.4)}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.2);color:#d6dbe3;border-radius:10px;padding:7px 10px;cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0c1014;color:#fff}
+.library{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.card{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;text-align:center;box-shadow:inset 0 0 14px rgba(212,175,55,.12);transition:.25s;cursor:pointer}
+.card:hover{box-shadow:0 0 20px rgba(212,175,55,.28)}
+.card .btn{width:100%;margin-top:6px}
+
+/* أسهم التحكم */
+#controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;gap:8px;justify-content:center;z-index:10002;pointer-events:auto}
+.ctrl{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#d4af37;box-shadow:0 0 10px rgba(212,175,55,.25)}
+.ctrl:hover{background:rgba(212,175,55,.2)}
+
+/* نافذة إدخال الملاحظة */
+#noteModal{position:fixed;inset:0;display:none;place-items:center;z-index:12001;background:radial-gradient(600px 320px at 50% 40%, rgba(212,175,55,.12), rgba(0,0,0,.65))}
+.noteCard{width:min(92vw,520px);background:#0b0f13f2;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px;box-shadow:0 0 22px rgba(212,175,55,.35)}
+.noteCard .row{justify-content:flex-end}
+
+/* Toast */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:10px 14px;border-radius:10px;display:none;z-index:11000}
+</style>
 </head>
 <body>
-<div id="app">
-  <div id="sidebar">
-    <h2>📦 إضافة نموذج GLB</h2>
-    <label>اسم العنصر</label>
-    <input id="modelName" type="text" placeholder="مثال: سكين">
-    <label>رابط النموذج</label>
-    <input id="modelUrl" type="url" placeholder="https://.../model.glb">
 
-    <div style="display:flex;gap:8px;">
-      <button id="addBtn">➕ أضف</button>
-    </div>
-
-    <h2>📚 مكتبة الأدلة</h2>
-    <div id="library" class="list"></div>
-<button id="clearLibraryBtn" class="btn-ghost">🧹 حذف المكتبة المحفوظة</button>
-
-<h2>📌 اختر نقطة مرجعية</h2>
-<select id="refSelector">
-  <option value="ref-center">وسط الغرفة</option>
-  <option value="ref-left">الجانب الأيسر</option>
-  <option value="ref-right">الجانب الأيمن</option>
-  <option value="ref-bed">جانب السرير</option>
-  <option value="ref-door">قرب الباب</option>
-</select>
-
-    <h2>📋 الأدلة المضافة</h2>
-    <select id="placedSelector" size="6" style="width:100%;margin-top:6px"></select>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <select id="placedType">
-        <option value="true">✔️ دليل صحيح</option>
-        <option value="false">❌ ليس دليلًا</option>
-      </select>
-      <button id="updateTypeBtn">🔄 تحديث النوع</button>
-    </div>
-
-    <h2>🖱 التحكم في النموذج</h2>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button id="modeTranslate" class="btn-ghost">🔁 تحريك</button>
-      <button id="modeRotate" class="btn-ghost">⟳ تدوير</button>
-      <button id="modeScale" class="btn-ghost">⤢ تكبير/تصغير</button>
-      <button id="confirmBtn">✅ اعتماد الموقع</button>
-      <button id="deleteBtn" class="btn-ghost">🗑 حذف</button>
-    </div>
-
-<h2>🧭 تعديل يدوي للموقع</h2>
-<div style="display:flex;gap:6px;flex-wrap:wrap">
-  <button class="btn-ghost" onclick="rotateSelected('x')">🔄 ميلان X</button>
-  <button class="btn-ghost" onclick="rotateSelected('y')">🔄 ميلان Y</button>
-  <button class="btn-ghost" onclick="rotateSelected('z')">🔄 ميلان Z</button>
-  <button class="btn-ghost" onclick="raiseSelected()">⬆ رفع</button>
-  <button class="btn-ghost" onclick="lowerSelected()">⬇ خفض</button>
-  <button class="btn-ghost" onclick="moveSelected('left')">⬅ يسار</button>
-  <button class="btn-ghost" onclick="moveSelected('right')">➡ يمين</button>
-  <button class="btn-ghost" onclick="moveSelected('forward')">⬆ أمام</button>
-  <button class="btn-ghost" onclick="moveSelected('backward')">⬇ خلف</button>
-  <button class="btn-ghost" onclick="scaleUp()">⤢ تكبير</button>
-  <button class="btn-ghost" onclick="scaleDown()">⤡ تصغير</button>
+<!-- البداية بالصوت + زر يعمل دائمًا -->
+<div id="overlayStart">
+  <div>مرحبًا بكم في إعادة بناء مسرح الجريمة<br>اضغط للبدء</div>
+  <!-- مهم: استدعاء مباشر يضمن العمل في كل المتصفحات -->
+  <button id="btnStart" onclick="startApp()">ابدأ</button>
 </div>
 
+<!-- HUD -->
+<div id="hud">
+  ⏱ <span id="time">--:--</span> | <span id="status">جاهز</span> | 🧮 <span id="score">0</span>
+</div>
 
-    <h2>⏱ الاختبار</h2>
-    <label>مدة الاختبار (ثواني)</label>
-    <input id="duration" type="text" value="120">
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="startBtn">▶️ ابدأ</button>
-      <button id="stopBtn" class="btn-ghost">⏹ إيقاف</button>
+<!-- المشهد -->
+<a-scene embedded renderer="antialias:true; colorManagement:true">
+  <a-plane id="floor" rotation="-90 0 0" width="30" height="30" color="#1a1f26" class="clickable"></a-plane>
+  <a-box class="clickable" position="0 3 -15" width="30" height="6" depth="0.12" color="#0f1317"></a-box>
+  <a-box class="clickable" position="0 3 15"  width="30" height="6" depth="0.12" color="#0f1317"></a-box>
+  <a-box class="clickable" position="-15 3 0" width="0.12" height="6" depth="30" color="#0f1317"></a-box>
+  <a-box class="clickable" position="15 3 0"  width="0.12" height="6" depth="30" color="#0f1317"></a-box>
+
+  <a-entity light="type:ambient; intensity:0.55"></a-entity>
+  <a-entity light="type:point; intensity:0.85; color:#d4af37" position="0 3 0"></a-entity>
+
+  <a-entity id="rig" position="0 1.6 6"><a-entity camera look-controls wasd-controls="acceleration:30"></a-entity></a-entity>
+  <a-entity id="ray" cursor="rayOrigin:mouse" raycaster="objects:.clickable,.placed,.noteMarker"></a-entity>
+</a-scene>
+
+<!-- واجهة الذكاء الاصطناعي -->
+<div id="uiLayer">
+  <button id="btnOpen">≡</button>
+  <aside id="sidebar" class="hidden">
+    <div id="sidebarHead">
+      <div style="color:#d4af37;font-weight:800">لوحة التحكم</div>
+      <button id="btnClose" title="إغلاق">✕</button>
     </div>
-    <div style="margin-top:12px"><strong>نقاط:</strong> <span id="scorePanel">0</span></div>
 
-    <h2>📊 النتيجة النهائية</h2>
-    <button id="finalizeBtn">📊 اعتماد اختيار الأدلة</button>
-  </div> <!-- نهاية sidebar -->
+    <!-- مكتبة الأدلة -->
+    <h2>📦 مكتبة الأدلة</h2>
+    <div id="library" class="library"></div>
 
-  <div id="sceneWrap">
-    <div id="hud">النقاط: <span id="score">0</span></div>
-    <div id="controls">
-      <div>الوقت: <span id="timer">--:--</span></div>
+    <!-- العناصر الموضوعة -->
+    <h2>🧩 العناصر الموضوعة</h2>
+    <select id="placedList" size="6" style="width:100%"></select>
+    <div class="row">
+      <button class="btn-ghost" id="btnDelete">🗑 حذف العنصر</button>
+      <button class="btn-ghost" id="btnReset">🔄 إعادة ضبط المشهد</button>
     </div>
-    <div id="message"></div>
 
-    <a-scene id="scene" background="color: #111" embedded vr-mode-ui="enabled: false">
-      <!-- الأرضية والجدران -->
-      <a-plane rotation="-90 0 0" width="10" height="10"
-        material="src: https://cdn.polyhaven.com/asset_img/primary/laminate_floor_02.png?height=760&quality=95; repeat: 4 4"></a-plane>
-      <a-box position="0 1.6 -5" width="10" height="3" depth="0.1"
-        material="src: https://cdn.polyhaven.com/asset_img/primary/snow_02.png?height=760&quality=95; repeat: 2 1"></a-box>
-      <a-box position="-5 1.6 0" width="0.1" height="3" depth="10"
-        material="src: https://cdn.polyhaven.com/asset_img/primary/snow_02.png?height=760&quality=95; repeat: 2 1"></a-box>
-      <a-box position="5 1.6 0" width="0.1" height="3" depth="10"
-        material="src: https://cdn.polyhaven.com/asset_img/primary/snow_02.png?height=760&quality=95; repeat: 2 1"></a-box>
+    <!-- تقييم الأدلة -->
+    <h2>✅❌ تقييم الأدلة</h2>
+    <div class="row">
+      <select id="evidenceSel">
+        <option value="none" selected>— بدون تقييم —</option>
+        <option value="true">✔️ دليل صحيح</option>
+        <option value="false">❌ دليل خاطئ</option>
+      </select>
+      <button class="btn" id="btnApplyEvidence">تطبيق</button>
+    </div>
 
-      <!-- إضاءة وكاميرا -->
-      <a-entity light="type: ambient; intensity: 0.5"></a-entity>
-      <a-entity light="type: directional; intensity: 0.8" position="2 4 2"></a-entity>
-      <a-entity id="cameraRig" position="0 1.6 3">
-        <a-entity camera look-controls wasd-controls></a-entity>
-      </a-entity>
+    <!-- الاختبار -->
+    <h2>🧪 الاختبار</h2>
+    <div class="row">
+      <input id="duration" type="number" value="120" title="المدة بالثواني">
+      <button class="btn" id="btnGameStart">بدء</button>
+      <button class="btn-ghost" id="btnGameStop">إيقاف</button>
+      <button class="btn-ghost" id="btnGameFinalize">اعتماد</button>
+    </div>
 
-      <!-- نقاط مرجعية -->
-      <a-entity id="ref-center" position="0 1 -2" visible="false"></a-entity>
-      <a-entity id="ref-left" position="-2 1 -2" visible="false"></a-entity>
-      <a-entity id="ref-right" position="2 1 -2" visible="false"></a-entity>
-      <a-entity id="ref-bed" position="-1 1 -4" visible="false"></a-entity>
-      <a-entity id="ref-door" position="1 1 2" visible="false"></a-entity>
+    <!-- الملاحظات -->
+    <h2>🗒️ الملاحظات</h2>
+    <button class="btn" id="btnNoteMode">إضافة ملاحظة</button>
 
-      <!-- تفعيل التحكم بالماوس أو اللمس -->
-      <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: .clickable" super-hands></a-entity>
-    </a-scene>
+    <!-- إعدادات التحريك -->
+    <h2>⚙️ إعدادات التحريك</h2>
+    <div class="row">
+      <label style="font-size:12px;color:#cdd6e1">سرعة الحركة:</label>
+      <select id="stepSel">
+        <option value="0.05">بطيئة (0.05)</option>
+        <option value="0.1" selected>متوسطة (0.1)</option>
+        <option value="0.25">سريعة (0.25)</option>
+        <option value="0.5">عالية (0.5)</option>
+      </select>
+    </div>
+  </aside>
+</div>
+
+<!-- أسهم التحكم -->
+<div id="controls">
+  <div class="ctrl" data-act="up"     title="أعلى">🔼</div>
+  <div class="ctrl" data-act="down"   title="أسفل">🔽</div>
+  <div class="ctrl" data-act="left"   title="يسار">◀️</div>
+  <div class="ctrl" data-act="right"  title="يمين">▶️</div>
+  <div class="ctrl" data-act="fwd"    title="أمام">⏫</div>
+  <div class="ctrl" data-act="back"   title="خلف">⏬</div>
+  <div class="ctrl" data-act="rotL"   title="تدوير يسار">⟲</div>
+  <div class="ctrl" data-act="rotR"   title="تدوير يمين">⟳</div>
+  <div class="ctrl" data-act="plus"   title="تكبير">⊕</div>
+  <div class="ctrl" data-act="minus"  title="تصغير">⊖</div>
+</div>
+
+<!-- نافذة إدخال الملاحظة -->
+<div id="noteModal">
+  <div class="noteCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <strong style="color:#d4af37">إضافة ملاحظة باللغة الانجليزية</strong>
+      <button class="btn-ghost" id="noteCancel">إلغاء</button>
+    </div>
+    <label>النص:</label>
+    <textarea id="noteText" rows="5" placeholder="اكتب الملاحظة باللغة الانجليزية فقط..."></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="noteSave">حفظ</button>
+    </div>
   </div>
-</div> <!-- نهاية app -->
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-const libraryEl = document.getElementById('library');
-const addBtn = document.getElementById('addBtn');
-const modelNameInput = document.getElementById('modelName');
-const modelUrlInput = document.getElementById('modelUrl');
-const refSelector = document.getElementById('refSelector');
-const confirmBtn = document.getElementById('confirmBtn');
-const deleteBtn = document.getElementById('deleteBtn');
-const modeTranslate = document.getElementById('modeTranslate');
-const modeRotate = document.getElementById('modeRotate');
-const modeScale = document.getElementById('modeScale');
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const finalizeBtn = document.getElementById('finalizeBtn');
-const durationInput = document.getElementById('duration');
-const scorePanel = document.getElementById('scorePanel');
-const scoreHud = document.getElementById('score');
-const message = document.getElementById('message');
-const scene = document.getElementById('scene');
-const timerText = document.getElementById('timer');
-const placedSelector = document.getElementById('placedSelector');
-const placedType = document.getElementById('placedType');
-const updateTypeBtn = document.getElementById('updateTypeBtn');
-const clearLibraryBtn = document.getElementById('clearLibraryBtn'); // ✅ زر حذف المكتبة
+/* ===== إصلاح زر البدء (مضمون) =====
+   - لا نعتمد على الصوت داخل حدث الضغط نهائيًا.
+   - نزيل الغلاف ثم نشغل الصوت بعد البدء بشكل غير حاجب.
+*/
+window.startApp = function(){
+  const btnStart = document.getElementById('btnStart');
+  const ov = document.getElementById('overlayStart');
 
-let library = [];
-let placed = [];
-let selected = null;
-let score = 0;
-let timerInterval = null;
-let timeLeft = 0;
+  // تأثير بسيط عند الضغط
+  if(btnStart){
+    btnStart.style.transition='transform .18s ease, box-shadow .18s ease';
+    btnStart.style.transform='scale(.96)';
+    btnStart.style.boxShadow='0 0 22px rgba(212,175,55,.8)';
+    setTimeout(()=>{ btnStart.style.transform='scale(1)'; btnStart.style.boxShadow='0 0 14px rgba(212,175,55,.5)'; }, 180);
+  }
 
-/* إضافة نموذج إلى المكتبة */
-addBtn.addEventListener('click', ()=>{
-  const name = modelNameInput.value.trim() || 'عنصر';
-  const url = modelUrlInput.value.trim();
-  const valid = placedType.value;
-  if(!url){ alert('يرجى إدخال رابط صالح'); return; }
-  if(!valid){ alert('يرجى اختيار نوع الدليل'); return; }
-  const id = 'm'+Date.now();
-  library.push({id,name,url,valid});
-  localStorage.setItem('evidenceLibrary', JSON.stringify(library));
-  modelNameInput.value=''; modelUrlInput.value='';
-  renderLibrary();
-});
+  // إخفاء الغلاف فورًا
+  if(ov){
+    ov.style.transition='opacity .6s ease';
+    ov.style.opacity='0';
+    setTimeout(()=> ov.remove(), 650);
+  }
 
+  // تشغيل صوت ترحيبي بعد البدء (غير حاجب)
+  setTimeout(()=>{
+    try{
+      if(!('speechSynthesis' in window)) return;
+      const u = new SpeechSynthesisUtterance('مرحبًا بكم في إعادة بناء مسرح الجريمة، اضغط للبدء');
+      u.lang='ar'; u.rate=1; u.pitch=.9;
+      const voices = speechSynthesis.getVoices();
+      const male = voices.find(v => /ar/i.test(v.lang) && /male|google.*arabic/i.test(v.name)) || voices.find(v=>/ar/i.test(v.lang));
+      if(male) u.voice=male;
+      // لا نجعل الصوت شرطًا للبدء
+      speechSynthesis.cancel();
+      // بعض المتصفحات تحتاج resume بعد تفاعل المستخدم
+      if (typeof speechSynthesis.resume === 'function') speechSynthesis.resume();
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }, 900);
+};
 
+/* ===== بقية المنظومة (كما هي تمامًا) ===== */
+const sidebar = document.getElementById('sidebar');
+document.getElementById('btnOpen').onclick  = ()=> sidebar.classList.remove('hidden');
+document.getElementById('btnClose').onclick = ()=> sidebar.classList.add('hidden');
+const toast = document.getElementById('toast');
+function msg(t){ toast.textContent=t; toast.style.display='block'; setTimeout(()=>toast.style.display='none',1100); }
+const timeEl = document.getElementById('time');
+const statusEl = document.getElementById('status');
+const scoreEl = document.getElementById('score');
 
-/* عرض المكتبة */
+const scene = document.querySelector('a-scene');
+const ray   = document.getElementById('ray');
+
+/* مكتبة الأدلة */
+const library = [
+  {name:'سكين',         url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/ReciprocatingSaw/glTF-Binary/ReciprocatingSaw.glb'},
+  {name:'مسدس',         url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb'},
+  {name:'خوذة متضررة',  url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb'},
+  {name:'بقعة دم',      url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Avocado/glTF-Binary/Avocado.glb'},
+  {name:'BoomBox',      url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/BoomBox/glTF-Binary/BoomBox.glb'},
+  {name:'بطة',          url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Duck/glTF-Binary/Duck.glb'}
+];
 function renderLibrary(){
-  libraryEl.innerHTML = '';
-  library.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-      <div style="flex:1">
-        <div class="row"><strong>${escapeHtml(item.name)}</strong></div>
-        <div style="font-size:12px;color:#8f999f;margin-top:6px">${escapeHtml(item.url)}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <button class="btn-ghost" onclick="previewModel('${item.url}')">👁 معاينة</button>
-        <button class="btn-ghost" onclick="placeModel('${item.id}')">📍 وضع</button>
-      </div>
-    `;
-    libraryEl.appendChild(div);
+  const lib = document.getElementById('library'); lib.innerHTML = '';
+  library.forEach((m,i)=>{
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML = `<div style="font-weight:800">${m.name}</div><button class="btn">وضع</button>`;
+    card.querySelector('button').onclick = ()=> placeModel(i);
+    lib.appendChild(card);
   });
 }
+renderLibrary();
 
-/* معاينة النموذج */
-window.previewModel = function(url){
-  const tempId = 'preview-'+Date.now();
+let placed = []; // {id,name,el,scored:false}
+let selected = null;
+const placedList = document.getElementById('placedList');
+const evidenceSel = document.getElementById('evidenceSel');
+
+function placeModel(i){
+  const m = library[i]; if(!m) return;
+  const id = 'ent-'+Date.now();
   const ent = document.createElement('a-entity');
-  ent.setAttribute('id', tempId);
-  ent.setAttribute('gltf-model', url);
-  ent.setAttribute('position', '0 1 -1');
-  ent.setAttribute('scale','0.6 0.6 0.6');
-  scene.appendChild(ent);
-  message.textContent = '👁 معاينة النموذج...';
-  setTimeout(()=>{ message.textContent=''; try{ scene.removeChild(ent);}catch(e){} },6000);
-}
+  ent.setAttribute('id', id);
+  ent.setAttribute('gltf-model', m.url);
+  ent.setAttribute('position', `${(Math.random()*2-1).toFixed(2)} 0 ${(Math.random()*-2-2).toFixed(2)}`);
+  ent.setAttribute('rotation','0 0 0');
+  ent.setAttribute('scale','1 1 1');
+  ent.classList.add('placed','clickable');
+  ent.setAttribute('data-valid','none');   // none / true / false
+  ent.setAttribute('data-scored','no');    // yes/no
 
-/* وضع النموذج */
-window.placeModel = function(libId){
-  const lib = library.find(l=>l.id===libId);
-  if(!lib) return;
-
-  const refId = refSelector?.value || 'ref-center';
-  const ref = document.getElementById(refId);
-  const refPos = ref?.getAttribute('position') || {x:0, y:1, z:-2};
-
-  const isValid = placedType.value;
-
-  const ent = document.createElement('a-entity');
-  const pid = 'p'+Date.now();
-  ent.setAttribute('id', pid);
-  ent.setAttribute('gltf-model', lib.url);
-  ent.setAttribute('position', `${refPos.x} ${refPos.y} ${refPos.z}`);
-  ent.setAttribute('scale', '1 1 1');
-  ent.setAttribute('gizmo', 'mode: translate; rotation: true; scale: true; size: 1.5');
-  ent.setAttribute('class', 'placed clickable');
-  ent.setAttribute('data-evidence','true');
-  ent.setAttribute('data-valid', isValid);
-  ent.setAttribute('draggable', 'true');
-  ent.setAttribute('grabbable', 'true');
-  ent.setAttribute('stretchable', 'true');
-  ent.setAttribute('rotatable', 'true');
-  ent.setAttribute('shadow', 'receive: true; cast: true');
-  ent.setAttribute('raycastable', 'true');
-
-  // ✅ كوليدر غير مرئي
-  const collider = document.createElement('a-box');
-  collider.setAttribute('position', '0 1 0');
-  collider.setAttribute('width', '1');
-  collider.setAttribute('height', '2');
-  collider.setAttribute('depth', '0.5');
-  collider.setAttribute('opacity', '0');
-  collider.setAttribute('class', 'clickable');
-  ent.appendChild(collider);
+  const col=document.createElement('a-box');
+  col.setAttribute('width','1.2'); col.setAttribute('height','1.8'); col.setAttribute('depth','1.2');
+  col.setAttribute('opacity','0'); col.setAttribute('position','0 0.9 0'); col.classList.add('clickable');
+  ent.appendChild(col);
 
   scene.appendChild(ent);
-  placed.push({id:pid,name:lib.name,el:ent});
+  placed.push({id,name:m.name,el:ent,scored:false});
 
-  const option = document.createElement('option');
-  option.value = pid;
-  option.textContent = lib.name;
-  placedSelector.appendChild(option);
-
-  selectPlaced(pid);
+  const opt=document.createElement('option'); opt.value=id; opt.textContent=m.name; placedList.appendChild(opt);
+  selectById(id);
+  msg('تم وضع '+m.name);
 }
+function selectById(id){
+  const rec = placed.find(p=>p.id===id); if(!rec) return;
+  selected = rec.el; placedList.value = id;
+  evidenceSel.value = selected.getAttribute('data-valid') || 'none';
+}
+placedList.onchange = e => selectById(e.target.value);
 
-/* اختيار من القائمة */
-placedSelector.addEventListener('change', (e)=>{
-  const id = e.target.value;
-  selectPlaced(id);
-  message.textContent = `📌 تم تحديد: ${selected.name}`;
-});
-
-/* تحديث نوع الدليل */
-scene.addEventListener('click', (ev) => {
-  const el = ev.target;
-  const ent = el.closest ? el.closest('a-entity') : null;
-  if (!ent) return;
-
-  // ✅ جمع الأدلة أثناء الاختبار
-  if (timeLeft > 0 && ent.getAttribute('data-evidence') === 'true') {
-    ent.setAttribute('data-evidence', 'collected');
-    const valid = ent.getAttribute('data-valid');
-    if (valid === 'true') { score += 10; }
-    message.textContent = valid === 'true' ? '✅ دليل صحيح تم جمعه' : '❌ هذا ليس دليلًا';
-    updateScore();
-    setTimeout(() => message.textContent = '', 2000);
+function findAncestor(el, pred){
+  let cur = el;
+  while(cur && cur !== scene){
+    if(pred(cur)) return cur;
+    cur = cur.parentEl;
   }
-
-  // ✅ تحديد النموذج عند النقر
-  const isPlaced = placed.find(p => p.el === ent);
-  if (isPlaced) {
-    selectPlaced(isPlaced.id);               // تفعيل التحديد
-    placedSelector.value = isPlaced.id;      // مزامنة القائمة
-    message.textContent = `📌 تم تحديد: ${isPlaced.name}`;
-  }
-});
-
-
-
-
-/* التحكم اليدوي */
-function rotateSelected(axis){
-  if(!selected) return alert('اختر عنصرًا أولاً');
-  const rot = selected.el.getAttribute('rotation');
-  if(axis==='x') rot.x += 90;
-  if(axis==='y') rot.y += 90;
-  if(axis==='z') rot.z += 90;
-  selected.el.setAttribute('rotation', `${rot.x} ${rot.y} ${rot.z}`);
+  return null;
 }
 
-function raiseSelected(){
-  if(!selected) return alert('اختر عنصرًا أولاً');
-  const pos = selected.el.getAttribute('position');
-  pos.y += 0.5;
-  selected.el.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
-}
+ray.addEventListener('click',(ev)=>{
+  const el = ev.detail?.intersectedEl; if(!el) return;
 
-function lowerSelected(){
-  if(!selected) return alert('اختر عنصرًا أولاً');
-  const pos = selected.el.getAttribute('position');
-  pos.y -= 0.5;
-  selected.el.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
-}
+  const ent = findAncestor(el, e=> e.classList && e.classList.contains('placed'));
+  if(ent){ const rec = placed.find(p=>p.el===ent || p.id===ent.id); if(rec) selectById(rec.id); }
 
-/* أزرار gizmo */
-modeTranslate.addEventListener('click', () => {
-  if (!selected) return alert('اختر عنصرًا أولاً');
-  selected.el.setAttribute('gizmo', 'mode: translate; size: 1.5');
-});
-modeRotate.addEventListener('click', () => {
-  if (!selected) return alert('اختر عنصرًا أولاً');
-  selected.el.setAttribute('gizmo', 'mode: rotate; size: 1.5');
-});
-modeScale.addEventListener('click', () => {
-  if (!selected) return alert('اختر عنصرًا أولاً');
-  selected.el.setAttribute('gizmo', 'mode: scale; size: 1.5');
-});
-confirmBtn.addEventListener('click', () => {
-  if (!selected) return alert('اختر عنصرًا أولاً');
-  selected.el.removeAttribute('gizmo');
-  message.textContent = '✅ تم تثبيت النموذج في الموقع';
-});
-deleteBtn.addEventListener('click', ()=>{
-  if(!selected) return alert('اختر عنصرًا أولاً');
+  handleNoteClick(ev);
 
-  // حذف العنصر من المسرح
-  try { scene.removeChild(selected.el); } catch(e){}
-
-  // حذف العنصر من القائمة
-  const optionToRemove = [...placedSelector.options].find(opt => opt.value === selected.id);
-  if(optionToRemove) placedSelector.removeChild(optionToRemove);
-
-  // تحديث المصفوفة
-  placed = placed.filter(p => p.id !== selected.id);
-
-  // إعادة تعيين التحديد
-  selected = null;
-  message.textContent = '🗑 تم حذف النموذج من المسرح والقائمة';
-});
-
-
-/* الاختبار */
-startBtn.addEventListener('click', ()=>{
-  if(placed.length === 0) return alert('ضع عناصر أولاً');
-
-  score = 0;
-  updateScore();
-  timeLeft = parseInt(durationInput.value) || 120;
-  updateTimerDisplay();
-
-  placed.forEach(p => p.el.setAttribute('data-evidence', 'true'));
-
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      endRound();
+  if(timer){
+    const target = findAncestor(el, e=> e.classList && e.classList.contains('placed'));
+    if(target){
+      const valid = target.getAttribute('data-valid');
+      const scored = target.getAttribute('data-scored');
+      if(scored==='yes') return;
+      if(valid==='true'){ addScore(10); flashHalo(target, '#39d98a'); target.setAttribute('data-scored','yes'); }
+      else if(valid==='false'){ addScore(-5); flashHalo(target, '#ff5c5c'); target.setAttribute('data-scored','yes'); }
     }
-  }, 1000);
-
-  // ✅ عرض الرسالة ثم إخفاؤها بعد 3 ثوانٍ
-  message.textContent = '⏳ الاختبار بدأ! انقر على الأدلة لجمعها.';
-  setTimeout(() => { message.textContent = ''; }, 3000);
+  }
 });
 
-stopBtn.addEventListener('click', ()=>{ 
-  if(timerInterval) clearInterval(timerInterval); 
-  message.textContent='⏹ تم الإيقاف.'; 
+document.getElementById('btnDelete').onclick = ()=>{
+  if(!selected){ msg('اختر عنصرًا أولًا'); return; }
+  const id = placedList.value;
+  try{ scene.removeChild(selected); }catch(e){}
+  placed = placed.filter(p=>p.id!==id);
+  [...placedList.options].forEach(o=>{ if(o.value===id) o.remove(); });
+  selected=null; evidenceSel.value='none';
+  msg('🗑 تم حذف العنصر');
+};
+
+document.getElementById('btnReset').onclick = ()=>{
+  placed.forEach(p=>{ try{ scene.removeChild(p.el); }catch(e){} });
+  placed=[]; placedList.innerHTML='';
+  document.querySelectorAll('.noteMarker').forEach(n=>{ try{ n.parentEl.removeChild(n); }catch(e){} });
+  selected=null; evidenceSel.value='none';
+  endTimer(true);
+  score = 0; scoreEl.textContent='0'; statusEl.textContent='تمت إعادة الضبط';
+  msg('تمت إعادة ضبط المشهد');
+};
+
+function updateEvidenceStyle(ent){
+  [...ent.children].filter(c=> c.classList && c.classList.contains('evidenceHalo')).forEach(h=>ent.removeChild(h));
+  const val = ent.getAttribute('data-valid');
+  if(val==='true' || val==='false'){
+    const halo = document.createElement('a-torus');
+    halo.classList.add('evidenceHalo');
+    halo.setAttribute('radius','0.6'); halo.setAttribute('radius-tubular','0.02');
+    halo.setAttribute('rotation','90 0 0'); halo.setAttribute('position','0 0.05 0');
+    const col = (val==='true') ? '#39d98a' : '#ff5c5c';
+    halo.setAttribute('material',`color:${col}; emissive:${col}; emissiveIntensity:0.5; opacity:0.85; transparent:true`);
+    ent.appendChild(halo);
+  }
+}
+document.getElementById('btnApplyEvidence').onclick = ()=>{
+  if(!selected){ msg('اختر عنصرًا أولًا'); return; }
+  const val = evidenceSel.value;
+  selected.setAttribute('data-valid', val);
+  selected.setAttribute('data-scored','no');
+  updateEvidenceStyle(selected);
+  msg('تم تحديث تقييم الدليل');
+};
+
+function num(n){ return typeof n==='number' ? n : parseFloat(n)||0; }
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function stepVal(){ return parseFloat(document.getElementById('stepSel').value)||0.1; }
+document.querySelectorAll('#controls .ctrl').forEach(btn=>{
+  btn.onclick = ()=>{
+    if(!selected){ msg('اختر عنصرًا أولًا'); return; }
+    const act = btn.dataset.act, step = stepVal();
+    const pos = selected.getAttribute('position');
+    const rot = selected.getAttribute('rotation');
+    const sc  = selected.getAttribute('scale');
+    if(act==='up')   pos.y = +(num(pos.y)+step).toFixed(2);
+    if(act==='down') pos.y = +(num(pos.y)-step).toFixed(2);
+    if(act==='left') pos.x = +(num(pos.x)-step).toFixed(2);
+    if(act==='right')pos.x = +(num(pos.x)+step).toFixed(2);
+    if(act==='fwd')  pos.z = +(num(pos.z)-step).toFixed(2);
+    if(act==='back') pos.z = +(num(pos.z)+step).toFixed(2);
+    if(act==='rotL') rot.y = +(num(rot.y)-15).toFixed(2);
+    if(act==='rotR') rot.y = +(num(rot.y)+15).toFixed(2);
+    if(act==='plus'){ const s=num(sc.x)+step; sc.x=sc.y=sc.z=clamp(+s.toFixed(2),0.05,10); }
+    if(act==='minus'){const s=num(sc.x)-step; sc.x=sc.y=sc.z=clamp(+s.toFixed(2),0.05,10); }
+    selected.setAttribute('position', pos);
+    selected.setAttribute('rotation', rot);
+    selected.setAttribute('scale', sc);
+  };
 });
-function updateTimerDisplay(){
-  const mm = Math.floor(timeLeft/60).toString().padStart(2,'0');
-  const ss = (timeLeft%60).toString().padStart(2,'0');
-  timerText.textContent = `${mm}:${ss}`;
-}
-function updateScore(){
-  scorePanel.textContent = score;
-  scoreHud.textContent = score;
-}
 
-function endRound(){
-  message.textContent = `⏱ انتهى الوقت! مجموع نقاطك: ${score}`;
-  placed.forEach(p => p.el.setAttribute('data-evidence','false'));
-}
+/* ===== الملاحظات (كما هي) مع Zoom-in/Zoom-out وصوت/وميض ===== */
+let noteModeActive = false;
+let pendingPoint = null;
+const noteModal = document.getElementById('noteModal');
+const noteText = document.getElementById('noteText');
 
-/* اعتماد اختيار الأدلة */
-finalizeBtn.addEventListener('click', () => {
-  let correct = 0;
-  let wrong = 0;
-  placed.forEach(p => {
-    const status = p.el.getAttribute('data-evidence');
-    const valid = p.el.getAttribute('data-valid');
-    if (status === 'collected') {
-      if (valid === 'true') {
-        correct++;
-      } else {
-        wrong++;
-      }
+document.getElementById('btnNoteMode').onclick = ()=>{
+  noteModeActive=true; statusEl.textContent='وضع الملاحظات مفعل'; msg('اضغط في المشهد لتحديد مكان الملاحظة');
+};
+
+function safeTextValue(s){ return (s||'').toString().replace(/;/g,'؛'); }
+function estimateHeight(text, wrap){
+  const t = (text||'').length ? text : ' ';
+  const lines = Math.max(1, Math.ceil(t.length / wrap));
+  const lineH = 0.18;  const pad = 0.26;
+  return +(pad + lines*lineH).toFixed(2);
+}
+function createNoteAt(point, text) {
+  const marker = document.createElement('a-entity');
+  marker.classList.add('noteMarker','clickable');
+  marker.setAttribute('position', `${point.x} ${Math.max(0.05,point.y)} ${point.z}`);
+  marker.setAttribute('data-note', text || '');
+
+  // النقطة الذهبية
+  const dot = document.createElement('a-sphere');
+  dot.setAttribute('radius','0.09');
+  dot.setAttribute('material','color:#d4af37; emissive:#b78f2a; emissiveIntensity:0.5; metalness:0.4; roughness:0.3');
+  dot.classList.add('clickable');
+  marker.appendChild(dot);
+
+  // مربع الملاحظة (يظهر عند الضغط)
+  const noteBox = document.createElement('a-entity');
+  noteBox.setAttribute('visible','false');
+  noteBox.setAttribute('position','0 1.0 0');
+
+  // خلفية زجاجية ذهبية
+  const bg = document.createElement('a-plane');
+  bg.setAttribute('width','3.2');
+  bg.setAttribute('height','1.6');
+  bg.setAttribute('material','color:#0a0c0f; opacity:0.88; side:double; metalness:0.2; roughness:0.4; emissive:#d4af37; emissiveIntensity:0.15');
+  bg.setAttribute('radius','0.12');
+  noteBox.appendChild(bg);
+
+  // نص الملاحظة
+  const txt = document.createElement('a-entity');
+  txt.setAttribute('text', `value:${safeTextValue(text)}; color:#fff; align:center; wrapCount:40; width:3;`);
+  txt.setAttribute('position','0 0 0.02');
+  noteBox.appendChild(txt);
+
+  // أزرار
+  const btnEdit = document.createElement('a-entity');
+  btnEdit.setAttribute('text','value:✏️; color:#d4af37; align:left; width:1;');
+  btnEdit.setAttribute('position','-1.3 0.6 0.02');
+  btnEdit.classList.add('clickable');
+  noteBox.appendChild(btnEdit);
+
+  const btnDelete = document.createElement('a-entity');
+  btnDelete.setAttribute('text','value:🗑️; color:#d4af37; align:center; width:1;');
+  btnDelete.setAttribute('position','0 0.6 0.02');
+  btnDelete.classList.add('clickable');
+  noteBox.appendChild(btnDelete);
+
+  const btnClose = document.createElement('a-entity');
+  btnClose.setAttribute('text','value:✖️; color:#d4af37; align:right; width:1;');
+  btnClose.setAttribute('position','1.3 0.6 0.02');
+  btnClose.classList.add('clickable');
+  noteBox.appendChild(btnClose);
+
+  marker.appendChild(noteBox);
+
+  // التحكم بالنقر
+  dot.addEventListener('click', e => {
+    e.stopPropagation();
+    const visible = noteBox.getAttribute('visible');
+    if(!visible){
+      noteBox.setAttribute('visible','true');
+      playPop();
+    } else {
+      noteBox.setAttribute('visible','false');
     }
   });
 
-  message.textContent = `📊 الأدلة الصحيحة: ${correct} | الأدلة الخاطئة: ${wrong}`;
-  placed.forEach(p => {
-    const valid = p.el.getAttribute('data-valid');
-    const label = document.createElement('a-text');
-    label.setAttribute('value', valid === 'true' ? '✔ دليل صحيح' : '✖ ليس دليلًا');
-    label.setAttribute('color', valid === 'true' ? 'green' : 'red');
-    label.setAttribute('position', '0 0.5 0');
-    label.setAttribute('align', 'center');
-    p.el.appendChild(label);
-  });
-});
-
-/* دالة الهروب من HTML */
-function escapeHtml(s){
-  return (s||'').toString().replace(/[&<>"']/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-  })[c]);
-}
-
-/* مكتبة الأدلة الجاهزة */
-function seedExamples(){
-  const examples = [
-    {name:'سكين', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/ReciprocatingSaw/glTF-Binary/ReciprocatingSaw.glb'},
-    {name:'مسدس', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Duck/glTF-Binary/Duck.glb'},
-    {name:'بقعة دم', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Avocado/glTF-Binary/Avocado.glb'},
-    {name:'هاتف', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Box/glTF-Binary/Box.glb'},
-    {name:'حاجز', url:'https://dns3uae-glitch.github.io/crime-book-ai/fall-investigation-scene/source/nft_ipfs_gltf.gltf'},
-    {name:'جثة', url:'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb'}
-  ];
-  examples.forEach(x => {
-    library.push({
-      id: 'ex' + Math.random().toString(36).slice(2),
-      name: x.name,
-      url: x.url
-    });
+  btnClose.addEventListener('click', e => {
+    e.stopPropagation();
+    noteBox.setAttribute('visible','false');
   });
 
-  renderLibrary();
+  btnDelete.addEventListener('click', e => {
+    e.stopPropagation();
+    playDelete();
+    try { scene.removeChild(marker); } catch(err){}
+  });
+
+  btnEdit.addEventListener('click', e => {
+    e.stopPropagation();
+    const newText = prompt('📝 عدّل الملاحظة:', marker.getAttribute('data-note') || '');
+    if(newText !== null){
+      marker.setAttribute('data-note', newText);
+      txt.setAttribute('text', `value:${safeTextValue(newText)}; color:#fff; align:center; wrapCount:40; width:3;`);
+      playPop();
+    }
+  });
+
+  scene.appendChild(marker);
+  return marker;
 }
-const savedLibrary = localStorage.getItem('evidenceLibrary');
-if (savedLibrary) {
-  library = JSON.parse(savedLibrary);
-  renderLibrary();
-} else {
-  seedExamples(); // إذا لم توجد مكتبة محفوظة، استخدم الأمثلة
+
+
+function applyNoteText(marker, text){
+  const wrap = 64;
+  const safe = safeTextValue(text);
+  marker._text.setAttribute('text', `value:${safe}; color:white; align:center; width:3.8; wrapCount:${wrap}; baseline:center; letterSpacing:0;`);
+  const h = estimateHeight(safe, wrap);
+  marker._bg.setAttribute('height', h);
 }
-function moveSelected(direction){
-  if(!selected) return alert('اختر عنصرًا أولاً');
-  const pos = selected.el.getAttribute('position');
-  if(direction === 'left') pos.x -= 0.5;
-  if(direction === 'right') pos.x += 0.5;
-  if(direction === 'forward') pos.z -= 0.5;
-  if(direction === 'backward') pos.z += 0.5;
-  selected.el.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+function zoomOpen(marker){
+  const blink = document.createElement('a-ring');
+  blink.setAttribute('radius-inner','0.12');
+  blink.setAttribute('radius-outer','0.2');
+  blink.setAttribute('rotation','-90 0 0');
+  blink.setAttribute('material','color:#d4af37; opacity:0.9; transparent:true');
+  marker.appendChild(blink);
+  setTimeout(()=>{ try{ marker.removeChild(blink);}catch(e){} }, 1000);
+
+  const lbl = marker._label;
+  lbl.setAttribute('visible','true');
+  lbl.setAttribute('scale','0.7 0.7 0.7');
+  let start=null;
+  function anim(ts){ if(!start) start=ts; const p=Math.min(1,(ts-start)/400); const s=0.7+(1-0.7)*p; lbl.setAttribute('scale', `${s} ${s} ${s}`); if(p<1) requestAnimationFrame(anim); }
+  requestAnimationFrame(anim);
+  playPop();
 }
-function selectPlaced(id){
-  if(selected && selected.id === id) return;
-  selected = placed.find(p=>p.id===id);
-  placed.forEach(p=> p.el.setAttribute('material','color','#fff'));
-  if(selected){
-    selected.el.setAttribute('material','color','#2ecc71');
-    selected.el.setAttribute('gizmo', 'mode: translate; rotation: true; scale: true; size: 1.5');
+function zoomClose(marker){
+  const lbl = marker._label;
+  let start=null;
+  function anim(ts){ if(!start) start=ts; const p=Math.min(1,(ts-start)/400); const s=1-(1-0.7)*p; lbl.setAttribute('scale', `${s} ${s} ${s}`); if(p<1) requestAnimationFrame(anim); else lbl.setAttribute('visible','false'); }
+  requestAnimationFrame(anim);
+}
+
+const AudioCtx = window.AudioContext || window.webkitAudioContext; let actx=null;
+function playBeep(freq=660, dur=0.08, type='sine', vol=0.2){ try{ if(!actx) actx=new AudioCtx(); const t=actx.currentTime; const o=actx.createOscillator(); const g=actx.createGain(); o.type=type;o.frequency.value=freq; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g).connect(actx.destination); o.start(t); o.stop(t+dur);}catch(e){} }
+function playPop(){ playBeep(740,0.10,'sine',0.22); }
+function playDelete(){ playBeep(320,0.12,'triangle',0.18); }
+
+function handleNoteClick(ev) {
+  const inter = ev.detail?.intersection;
+  const hitEl = ev.detail?.intersectedEl;
+  if (!inter || !hitEl) return;
+
+  // إذا كنا في وضع إضافة ملاحظة
+  if (noteModeActive) {
+    pendingPoint = inter.point;
+    noteText.value = "";
+    noteModal.style.display = "grid";
+    return;
+  }
+
+  // البحث عن الملاحظة المقصودة
+  const marker = findAncestor(hitEl, e => e.classList && e.classList.contains("noteMarker"));
+  if (marker) {
+    const t = marker.getAttribute("data-note") || "";
+    if (!t.trim()) return;
+
+    // تحديث النص داخل العنصر المرئي عند كل ضغط
+    applyNoteText(marker, t);
+
+    // إعادة حجم الخلفية حسب طول النص
+    const wrap = 64;
+    const safe = safeTextValue(t);
+    const h = estimateHeight(safe, wrap);
+    marker._bg.setAttribute("height", h);
+
+    // إظهار المربع مع التأثير
+    zoomOpen(marker);
   }
 }
-function scaleUp(){
-  if(!selected) return alert('اختر عنصرًا أولاً');
-  const scale = selected.el.getAttribute('scale');
-  scale.x += 0.2;
-  scale.y += 0.2;
-  scale.z += 0.2;
-  selected.el.setAttribute('scale', `${scale.x} ${scale.y} ${scale.z}`);
-}
 
-function scaleDown(){
-  if(!selected) return alert('اختر عنصرًا أولاً');
-  const scale = selected.el.getAttribute('scale');
-  scale.x = Math.max(0.2, scale.x - 0.2);
-  scale.y = Math.max(0.2, scale.y - 0.2);
-  scale.z = Math.max(0.2, scale.z - 0.2);
-  selected.el.setAttribute('scale', `${scale.x} ${scale.y} ${scale.z}`);
-}
+document.getElementById('noteSave').onclick = ()=>{
+  const t = noteText.value.trim();
+  if(!pendingPoint){ document.getElementById('noteModal').style.display='none'; return; }
+  const marker = createNoteAt(pendingPoint, t);
+  zoomOpen(marker);
+  pendingPoint=null; document.getElementById('noteModal').style.display='none';
+  noteModeActive=false; statusEl.textContent='جاهز';
+};
+document.getElementById('noteCancel').onclick = ()=>{
+  pendingPoint=null; document.getElementById('noteModal').style.display='none'; statusEl.textContent='جاهز'; noteModeActive=false;
+};
 
+/* المؤقت + النقاط */
+let timeLeft=0, timer=null, score=0;
+function fmt(t){ const m=String(Math.floor(t/60)).padStart(2,'0'); const s=String(t%60).padStart(2,'0'); return `${m}:${s}`; }
+function endTimer(resetOnly=false){ if(timer){ clearInterval(timer); timer=null; } if(resetOnly){ timeLeft=0; timeEl.textContent='--:--'; statusEl.textContent='جاهز'; return; } statusEl.textContent='انتهى الوقت'; }
+function animateNumber(el, from, to, dur=350){ const start=performance.now(); function step(now){ const p=Math.min(1,(now-start)/dur); const val = Math.round(from + (to-from)*p); el.textContent = String(val); if(p<1) requestAnimationFrame(step); } requestAnimationFrame(step); }
+function addScore(delta){ const prev=score; score = Math.max(0, score + delta); animateNumber(scoreEl, prev, score); }
+const durInp = document.getElementById('duration');
+document.getElementById('btnGameStart').onclick = ()=>{
+  timeLeft = parseInt(durInp.value)||120;
+  if(timer) clearInterval(timer);
+  timeEl.textContent = fmt(timeLeft);
+  statusEl.textContent='الاختبار قيد التنفيذ';
+  placed.forEach(p=>{ if(p.el) p.el.setAttribute('data-scored','no'); });
+  timer = setInterval(()=>{ timeLeft--; timeEl.textContent=fmt(timeLeft); if(timeLeft<=0){ endTimer(); msg('⏱️ انتهى الوقت'); } },1000);
+};
+document.getElementById('btnGameStop').onclick = ()=>{ endTimer(); msg('تم الإيقاف'); };
+document.getElementById('btnGameFinalize').onclick = ()=>{ msg(`تم الاعتماد — نقاطك: ${score}`); };
+
+function flashHalo(ent, color){
+  const halo = document.createElement('a-ring');
+  halo.setAttribute('radius-inner','0.5'); halo.setAttribute('radius-outer','0.6'); halo.setAttribute('rotation','-90 0 0');
+  halo.setAttribute('material',`color:${color}; opacity:0.9; transparent:true`);
+  ent.appendChild(halo);
+  setTimeout(()=>{ try{ ent.removeChild(halo);}catch(e){} }, 350);
+}
 </script>
 </body>
 </html>
