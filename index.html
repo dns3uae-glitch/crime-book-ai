@@ -130,7 +130,12 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
     <!-- مكتبة الأدلة -->
     <h2>📦 مكتبة الأدلة</h2>
     <div id="library" class="library"></div>
-
+<h2>➕ إضافة عنصر خارجي</h2>
+<div class="row">
+  <input id="customName" type="text" placeholder="اسم العنصر">
+  <input id="customURL" type="text" placeholder="رابط النموذج (.glb)">
+  <button class="btn" id="btnAddCustom">إضافة</button>
+</div>
     <!-- العناصر الموضوعة -->
     <h2>🧩 العناصر الموضوعة</h2>
     <select id="placedList" size="6" style="width:100%"></select>
@@ -185,10 +190,12 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
   <div class="ctrl" data-act="right"  title="يمين">▶️</div>
   <div class="ctrl" data-act="fwd"    title="أمام">⏫</div>
   <div class="ctrl" data-act="back"   title="خلف">⏬</div>
+   <div class="ctrl" data-act="tilt" title="ميلان العنصر">📐</div>
   <div class="ctrl" data-act="rotL"   title="تدوير يسار">⟲</div>
   <div class="ctrl" data-act="rotR"   title="تدوير يمين">⟳</div>
   <div class="ctrl" data-act="plus"   title="تكبير">⊕</div>
   <div class="ctrl" data-act="minus"  title="تصغير">⊖</div>
+  <div class="ctrl" data-act="shrinkBig" title="تصغير كبير جدًا">🔹</div>
 </div>
 
 <!-- نافذة إدخال الملاحظة -->
@@ -282,6 +289,17 @@ function renderLibrary(){
   });
 }
 renderLibrary();
+document.getElementById('btnAddCustom').onclick = ()=>{
+  const name = document.getElementById('customName').value.trim();
+  const url  = document.getElementById('customURL').value.trim();
+  if(!name || !url){
+    msg('يرجى إدخال الاسم والرابط');
+    return;
+  }
+  library.push({name, url});
+  renderLibrary();
+  msg('✅ تم إضافة العنصر إلى المكتبة');
+};
 
 let placed = []; // {id,name,el,scored:false}
 let selected = null;
@@ -394,13 +412,18 @@ document.getElementById('btnApplyEvidence').onclick = ()=>{
 function num(n){ return typeof n==='number' ? n : parseFloat(n)||0; }
 function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
 function stepVal(){ return parseFloat(document.getElementById('stepSel').value)||0.1; }
+
 document.querySelectorAll('#controls .ctrl').forEach(btn=>{
   btn.onclick = ()=>{
     if(!selected){ msg('اختر عنصرًا أولًا'); return; }
     const act = btn.dataset.act, step = stepVal();
     const pos = selected.getAttribute('position');
     const rot = selected.getAttribute('rotation');
-    const sc  = selected.getAttribute('scale');
+    let   sc  = selected.getAttribute('scale') || {x:1,y:1,z:1};
+
+    // ميلان العنصر (جعله نائمًا) عبر تدوير المحور X بمقدار 90°
+    if(act==='tilt'){ rot.x = +(num(rot.x)+90).toFixed(2); }
+
     if(act==='up')   pos.y = +(num(pos.y)+step).toFixed(2);
     if(act==='down') pos.y = +(num(pos.y)-step).toFixed(2);
     if(act==='left') pos.x = +(num(pos.x)-step).toFixed(2);
@@ -409,14 +432,19 @@ document.querySelectorAll('#controls .ctrl').forEach(btn=>{
     if(act==='back') pos.z = +(num(pos.z)+step).toFixed(2);
     if(act==='rotL') rot.y = +(num(rot.y)-15).toFixed(2);
     if(act==='rotR') rot.y = +(num(rot.y)+15).toFixed(2);
-    if(act==='plus'){ const s=num(sc.x)+step; sc.x=sc.y=sc.z=clamp(+s.toFixed(2),0.05,10); }
-    if(act==='minus'){const s=num(sc.x)-step; sc.x=sc.y=sc.z=clamp(+s.toFixed(2),0.05,10); }
+
+    // تكبير/تصغير مع حد أدنى صغير جدًا
+    if(act==='plus'){ const s=num(sc.x)+step; sc.x=sc.y=sc.z=clamp(+s.toFixed(3),0.001,100); }
+    if(act==='minus'){const s=num(sc.x)-step; sc.x=sc.y=sc.z=clamp(+s.toFixed(3),0.001,100); }
+    // تصغير كبير جدًا بنسبة 90%
+    if(act==='shrinkBig'){ sc.x=sc.y=sc.z=+(num(sc.x)*0.1).toFixed(3); }
+
+
     selected.setAttribute('position', pos);
     selected.setAttribute('rotation', rot);
     selected.setAttribute('scale', sc);
   };
 });
-
 /* ===== الملاحظات (كما هي) مع Zoom-in/Zoom-out وصوت/وميض ===== */
 let noteModeActive = false;
 let pendingPoint = null;
@@ -486,6 +514,11 @@ function createNoteAt(point, text) {
   noteBox.appendChild(btnClose);
 
   marker.appendChild(noteBox);
+
+  // ربط المراجع لاستخدامها لاحقًا
+  marker._label = noteBox;
+  marker._bg = bg;
+  marker._text = txt;
 
   // التحكم بالنقر
   dot.addEventListener('click', e => {
