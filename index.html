@@ -1177,7 +1177,28 @@ document.addEventListener('touchend', ()=>{
   if(selected) saveScene();
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.getElementById('sidebar');
+  const cameraControls = document.querySelector('.camera-controls');
 
+  if (!sidebar || !cameraControls) return;
+
+  const observer = new MutationObserver(() => {
+    const isSidebarVisible = !sidebar.classList.contains('hidden');
+
+    if (isSidebarVisible) {
+      // 🔹 لما تفتح القائمة نحرك محتوى أزرار الكاميرا فقط قليلاً لليسار
+      cameraControls.style.transition = 'transform 0.4s ease';
+      cameraControls.style.transform = 'translateX(-290px)'; 
+    } else {
+      // 🔹 لما تُغلق القائمة ترجع لمكانها الطبيعي بدون تمدد
+      cameraControls.style.transition = 'transform 0.4s ease';
+      cameraControls.style.transform = 'translateX(0)';
+    }
+  });
+
+  observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+});
 
 </script>
 </body>
