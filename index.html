@@ -285,6 +285,33 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
     background: rgba(15,15,15,0.9);
   }
 }
+/* 📱 ضمان ثبات الأزرار في المنتصف للجوال حتى عند الوضع الأفقي */
+@media (max-width: 900px) and (orientation: landscape) {
+  .camera-controls,
+  .dynamic-controls {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%); /* تبقى في المنتصف */
+    width: auto;
+    max-width: 90vw;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .dynamic-controls {
+    bottom: 100px; /* فوق أزرار الكاميرا */
+  }
+
+  .camera-controls {
+    bottom: 20px; /* تبقى في الأسفل */
+  }
+
+  .ctrl-btn, .cam-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+}
 
 </style>
 </head>
