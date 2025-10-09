@@ -1210,33 +1210,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!sidebar || !cameraControls) return;
 
+ // 🎯 إصلاح نهائي: تثبيت أزرار الكاميرا وعدم تحركها عند فتح القائمة
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.getElementById('sidebar');
+  const cameraControls = document.querySelector('.camera-controls');
+
+  if (!sidebar || !cameraControls) return;
+
+  // فقط راقب حالة القائمة ولكن لا تحرّك الأزرار
   const observer = new MutationObserver(() => {
-    const isSidebarVisible = !sidebar.classList.contains('hidden');
-    const isMobile = window.innerWidth <= 900;
-    const isLandscape = window.innerWidth > window.innerHeight; // 👈 كشف الوضع الأفقي
-
-    if (isSidebarVisible) {
-      cameraControls.style.transition = 'transform 0.4s ease';
-
-      // 💡 لا تحرّك في الجوال الأفقي
-      if (isMobile && isLandscape) {
-        cameraControls.style.transform = 'translateX(-50%)';
-      }
-      else if (isMobile) {
-        cameraControls.style.transform = 'translateX(-80px)';
-      }
-      else {
-        cameraControls.style.transform = 'translateX(-290px)';
-      }
-    } else {
-      // ترجع لوضعها الطبيعي
-      cameraControls.style.transition = 'transform 0.4s ease';
-      if (isMobile || isLandscape) {
-        cameraControls.style.transform = 'translateX(-50%)';
-      } else {
-        cameraControls.style.transform = 'translateX(0)';
-      }
-    }
+    // لا تغيّر أي شيء هنا، الأزرار تبقى في مكانها دائماً
+    cameraControls.style.transform = 'translateX(-50%)';
+    cameraControls.style.left = '50%';
   });
 
   observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
