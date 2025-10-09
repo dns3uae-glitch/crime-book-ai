@@ -221,7 +221,7 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
 /* 💻 الوضع الأفقي (Landscape) */
 @media (orientation: landscape) {
   .dynamic-controls {
-    bottom: 20px;
+    bottom: 10px;
     left: 20px;
     flex-direction: column;
     gap: 6px;
@@ -266,7 +266,7 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
   }
 
   .dynamic-controls {
-    bottom: 60px; /* ترفعها قليلاً فوق أزرار الكاميرا */
+    bottom: 30px; /* ترفعها قليلاً فوق أزرار الكاميرا */
   }
 
   .camera-controls {
@@ -303,7 +303,7 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
   }
 
   .camera-controls {
-    bottom: 20px; /* تبقى في الأسفل */
+    bottom: 10px; /* تبقى في الأسفل */
   }
 
   .ctrl-btn, .cam-btn {
@@ -1205,35 +1205,36 @@ document.addEventListener('touchend', ()=>{
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.getElementById('sidebar');
   const cameraControls = document.querySelector('.camera-controls');
 
-  if (!cameraControls) return;
+  if (!sidebar || !cameraControls) return;
 
-  function adjustCameraButtons() {
-    const isMobile = window.innerWidth <= 900;
+  const observer = new MutationObserver(() => {
+    const isSidebarVisible = !sidebar.classList.contains('hidden');
+    const isMobile = window.innerWidth <= 900; // تحديد إذا الجهاز جوال أو تابلت
 
-    if (isMobile) {
-      // 📱 في الجوال: ثبّت الأزرار في نفس زاوية أزرار التحريك
-      cameraControls.style.position = 'fixed';
-      cameraControls.style.left = '20px';
-      cameraControls.style.bottom = '90px';
-      cameraControls.style.transform = 'none';
-      cameraControls.style.justifyContent = 'flex-start';
+    if (isSidebarVisible) {
+      cameraControls.style.transition = 'transform 0.4s ease';
+      if (isMobile) {
+        // في الجوال: حركة بسيطة يسار بعد القائمة
+        cameraControls.style.transform = 'translateX(-80px)';
+      } else {
+        // في اللابتوب: حركة أكبر يسار بعد القائمة
+        cameraControls.style.transform = 'translateX(-290px)';
+      }
     } else {
-      // 💻 في اللابتوب: أزرار الكاميرا تبقى في المنتصف
-      cameraControls.style.position = 'fixed';
-      cameraControls.style.left = '50%';
-      cameraControls.style.bottom = '20px';
-      cameraControls.style.transform = 'translateX(-50%)';
-      cameraControls.style.justifyContent = 'center';
+      // لما تُغلق القائمة ترجع لوضعها الطبيعي حسب نوع الجهاز
+      cameraControls.style.transition = 'transform 0.4s ease';
+      if (isMobile) {
+        cameraControls.style.transform = 'translateX(-50%)'; // ترجع للمنتصف
+      } else {
+        cameraControls.style.transform = 'translateX(0)'; // ترجع لمكانها الأصلي
+      }
     }
-  }
+  });
 
-  // ضبط مبدئي
-  adjustCameraButtons();
-
-  // إعادة الضبط عند تغيير حجم الشاشة أو تدوير الجوال
-  window.addEventListener('resize', adjustCameraButtons);
+  observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
 });
 
 </script>
