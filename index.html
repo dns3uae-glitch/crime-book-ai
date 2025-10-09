@@ -1185,15 +1185,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const observer = new MutationObserver(() => {
     const isSidebarVisible = !sidebar.classList.contains('hidden');
+    const isMobile = window.innerWidth <= 900; // تحديد إذا الجهاز جوال أو تابلت
 
     if (isSidebarVisible) {
-      // 🔹 لما تفتح القائمة نحرك محتوى أزرار الكاميرا فقط قليلاً لليسار
       cameraControls.style.transition = 'transform 0.4s ease';
-      cameraControls.style.transform = 'translateX(-290px)'; 
+      if (isMobile) {
+        // في الجوال: حركة بسيطة يسار بعد القائمة
+        cameraControls.style.transform = 'translateX(-80px)';
+      } else {
+        // في اللابتوب: حركة أكبر يسار بعد القائمة
+        cameraControls.style.transform = 'translateX(-290px)';
+      }
     } else {
-      // 🔹 لما تُغلق القائمة ترجع لمكانها الطبيعي بدون تمدد
+      // لما تُغلق القائمة ترجع لوضعها الطبيعي حسب نوع الجهاز
       cameraControls.style.transition = 'transform 0.4s ease';
-      cameraControls.style.transform = 'translateX(0)';
+      if (isMobile) {
+        cameraControls.style.transform = 'translateX(-50%)'; // ترجع للمنتصف
+      } else {
+        cameraControls.style.transform = 'translateX(0)'; // ترجع لمكانها الأصلي
+      }
     }
   });
 
