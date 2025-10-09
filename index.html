@@ -285,6 +285,42 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
     background: rgba(15,15,15,0.9);
   }
 }
+/* 🎯 حل جذري لمشاكل التداخل والخروج عن الشاشة */
+
+/* في الجوال والتابلت — ضمان بقاء الأزرار داخل الشاشة بالكامل */
+@media (max-width: 768px) {
+  .dynamic-controls, .camera-controls {
+    max-width: 92vw;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow-x: auto;
+    justify-content: center;
+  }
+  .dynamic-controls::-webkit-scrollbar,
+  .camera-controls::-webkit-scrollbar {
+    display: none; /* إخفاء الشريط الجانبي */
+  }
+}
+
+/* في اللابتوب — تجنّب تغطية القائمة اليمنى */
+@media (min-width: 1024px) {
+  .dynamic-controls {
+    left: 20px;
+    bottom: 20px;
+  }
+  .camera-controls {
+    left: calc(50% - 200px); /* نقلها قليلًا لليسار لتبتعد عن القائمة */
+    bottom: 20px;
+  }
+
+  /* عندما تكون القائمة مفتوحة */
+  #sidebar:not(.hidden) ~ .camera-controls {
+    left: 45%; /* الأزرار تبتعد أكثر */
+  }
+  #sidebar:not(.hidden) ~ .dynamic-controls {
+    left: 10%; /* أزرار العناصر تبتعد أكثر */
+  }
+}
 
 </style>
 </head>
