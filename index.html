@@ -1204,27 +1204,25 @@ document.addEventListener('touchend', ()=>{
   if(selected) saveScene();
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-  const sidebar = document.getElementById('sidebar');
-  const cameraControls = document.querySelector('.camera-controls');
-
-  if (!sidebar || !cameraControls) return;
-
- // 🎯 إصلاح نهائي: تثبيت أزرار الكاميرا وعدم تحركها عند فتح القائمة
+// 🎯 تثبيت أزرار الكاميرا بدون تعارض مع بقية الأزرار
 document.addEventListener('DOMContentLoaded', () => {
-  const sidebar = document.getElementById('sidebar');
   const cameraControls = document.querySelector('.camera-controls');
 
-  if (!sidebar || !cameraControls) return;
+  if (!cameraControls) return;
 
-  // فقط راقب حالة القائمة ولكن لا تحرّك الأزرار
-  const observer = new MutationObserver(() => {
-    // لا تغيّر أي شيء هنا، الأزرار تبقى في مكانها دائماً
-    cameraControls.style.transform = 'translateX(-50%)';
+  // عند تحميل الصفحة أو تدوير الشاشة، تأكد أن أزرار الكاميرا في مكانها الصحيح
+  function fixCameraPosition() {
+    cameraControls.style.position = 'fixed';
     cameraControls.style.left = '50%';
-  });
+    cameraControls.style.transform = 'translateX(-50%)';
+    cameraControls.style.bottom = '20px'; // المسافة من الأسفل
+  }
 
-  observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+  // ضبط أولي
+  fixCameraPosition();
+
+  // إعادة الضبط عند تغيير حجم الشاشة أو تدوير الجوال
+  window.addEventListener('resize', fixCameraPosition);
 });
 
 
