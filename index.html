@@ -550,14 +550,11 @@ let moveObjInterval;
 
 document.querySelectorAll('#controls .ctrl-btn').forEach(btn=>{
   const act = btn.dataset.act;
-
-  // يبدأ التحريك عند الضغط المستمر
-  btn.onmousedown = ()=>{
+  const start = ()=> {
     const step = stepVal();
     if(['up','down','left','right','zoomIn','zoomOut','rotL','rotR','tilt','grow','shrink'].includes(act) && !selected){
       msg('اختر عنصرًا أولًا'); return;
     }
-
     moveObjInterval = setInterval(()=>{
       if(act==='up')   tweenDeltaPosition(selected, 0, +step, 0, 100);
       if(act==='down') tweenDeltaPosition(selected, 0, -step, 0, 100);
@@ -570,14 +567,16 @@ document.querySelectorAll('#controls .ctrl-btn').forEach(btn=>{
       if(act==='tilt') tiltSelected();
       if(act==='grow') tweenScaleFactor(selected, 1.02, 100);
       if(act==='shrink') tweenScaleFactor(selected, 0.98, 100);
-    }, 60); // ← كل 60 مللي ثانية (يمكنك تقليلها لتسريع الحركة)
+    }, 60);
   };
-
-  // يتوقف التحريك عند رفع اليد أو الخروج من الزر
-  btn.onmouseup = btn.onmouseleave = ()=>{
-    clearInterval(moveObjInterval);
-  };
+  const stop = ()=> clearInterval(moveObjInterval);
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('mouseup', stop);
+  btn.addEventListener('mouseleave', stop);
+  btn.addEventListener('touchstart', e=>{ e.preventDefault(); start(); });
+  btn.addEventListener('touchend', stop);
 });
+
 
 
 /* كاميرا: تحريك ودوران تدريجي */
@@ -600,9 +599,7 @@ let moveInterval;
 
 document.querySelectorAll('#cameraPanel .cam-btn').forEach(btn=>{
   const act = btn.dataset.cam;
-
-  // يبدأ التحريك عند الضغط المستمر
-  btn.onmousedown = ()=>{
+  const start = ()=>{
     const step = stepVal();
     moveInterval = setInterval(()=>{
       if(act==='up')   moveCam(0, +step*3, 0);
@@ -613,14 +610,16 @@ document.querySelectorAll('#cameraPanel .cam-btn').forEach(btn=>{
       if(act==='back') moveCam(0, 0, +step*3);
       if(act==='yawL') yawCam(-12);
       if(act==='yawR') yawCam(+12);
-    }, 50); // ← تتحرك كل 50 مللي ثانية (تقدر تقللها لتسريع الحركة)
+    }, 50);
   };
-
-  // يتوقف التحريك عند رفع الإصبع أو الخروج من الزر
-  btn.onmouseup = btn.onmouseleave = ()=>{
-    clearInterval(moveInterval);
-  };
+  const stop = ()=> clearInterval(moveInterval);
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('mouseup', stop);
+  btn.addEventListener('mouseleave', stop);
+  btn.addEventListener('touchstart', e=>{ e.preventDefault(); start(); });
+  btn.addEventListener('touchend', stop);
 });
+
 
 
 /* الملاحظات: فتح/إغلاق بالتبديل كل ضغطة */
