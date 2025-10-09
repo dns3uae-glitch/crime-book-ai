@@ -250,6 +250,41 @@ input,select,textarea{width:100%;padding:8px;border-radius:10px;border:1px solid
 @media (max-width: 600px) {
   .ctrl-btn, .cam-btn { width: 34px; height: 34px; font-size: 15px; }
 }
+/* 🎯 تحسين خاص للوضع الأفقي في الجوال لتجنب تغطية المشهد */
+@media (orientation: landscape) and (max-height: 500px) {
+  .dynamic-controls, .camera-controls {
+    background: rgba(10,10,10,0.45); /* شفافية أكبر */
+    padding: 6px;
+    border-radius: 10px;
+    flex-direction: row; /* صف واحد فقط */
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 4px;
+    width: 96vw;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .dynamic-controls {
+    bottom: 60px; /* ترفعها قليلاً فوق أزرار الكاميرا */
+  }
+
+  .camera-controls {
+    bottom: 10px; /* تبقى في الأسفل */
+  }
+
+  .ctrl-btn, .cam-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    opacity: 0.85;
+  }
+
+  #sidebar {
+    width: 320px;
+    background: rgba(15,15,15,0.9);
+  }
+}
 
 </style>
 </head>
