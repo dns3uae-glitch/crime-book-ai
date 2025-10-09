@@ -1238,6 +1238,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
 });
+/* 🧭 تقليل المسافة بين أزرار التحكم والعناصر في الوضع الأفقي للجوال */
+@media (max-width: 900px) and (orientation: landscape) {
+  .dynamic-controls {
+    bottom: 80px; /* كانت 100px */
+  }
+
+  .camera-controls {
+    bottom: 35px; /* كانت 20px */
+  }
+}
 
 </script>
 </body>
