@@ -1212,30 +1212,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const observer = new MutationObserver(() => {
     const isSidebarVisible = !sidebar.classList.contains('hidden');
-    const isMobile = window.innerWidth <= 900; // تحديد إذا الجهاز جوال أو تابلت
+    const isMobile = window.innerWidth <= 900;
+    const isLandscape = window.innerWidth > window.innerHeight; // 👈 كشف الوضع الأفقي
 
     if (isSidebarVisible) {
       cameraControls.style.transition = 'transform 0.4s ease';
-      if (isMobile) {
-        // في الجوال: حركة بسيطة يسار بعد القائمة
+
+      // 💡 لا تحرّك في الجوال الأفقي
+      if (isMobile && isLandscape) {
+        cameraControls.style.transform = 'translateX(-50%)';
+      }
+      else if (isMobile) {
         cameraControls.style.transform = 'translateX(-80px)';
-      } else {
-        // في اللابتوب: حركة أكبر يسار بعد القائمة
+      }
+      else {
         cameraControls.style.transform = 'translateX(-290px)';
       }
     } else {
-      // لما تُغلق القائمة ترجع لوضعها الطبيعي حسب نوع الجهاز
+      // ترجع لوضعها الطبيعي
       cameraControls.style.transition = 'transform 0.4s ease';
-      if (isMobile) {
-        cameraControls.style.transform = 'translateX(-50%)'; // ترجع للمنتصف
+      if (isMobile || isLandscape) {
+        cameraControls.style.transform = 'translateX(-50%)';
       } else {
-        cameraControls.style.transform = 'translateX(0)'; // ترجع لمكانها الأصلي
+        cameraControls.style.transform = 'translateX(0)';
       }
     }
   });
 
   observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
 });
+
 
 </script>
 </body>
